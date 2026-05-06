@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Webcam from "react-webcam";
 import { useNavigate, useLocation } from "react-router-dom";
 import FraudMonitor from "./FraudMonitor";
@@ -10,10 +10,6 @@ function Interview() {
 
   const { job, language, name, district } = location.state || {};
 
-  // Generate stable IDs for this session
-  const candidateId = useRef(`cand_${name || "guest"}_${Date.now()}`).current;
-  const sessionId = useRef(`sess_${Date.now()}`).current;
-
   const webcamRef = useRef(null);
   const fraudMonRef = useRef(null);
 
@@ -24,44 +20,107 @@ function Interview() {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [started, setStarted] = useState(false);
 
+  // Video recording states
+  const mediaRecorderRef = useRef(null);
+  const [recordedChunks, setRecordedChunks] = useState([]);
+  const [videoUrl, setVideoUrl] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
+
+  // Dummy IDs
+  const candidateId = name || "candidate";
+  const sessionId = Date.now().toString();
+
   const questions = [
     "How do you ensure safety while working?",
     "What tools do you use in your job?",
     "How do you handle emergency situations?",
   ];
 
-  // Capture image
+  // Capture Image
   const capture = () => {
     const img = webcamRef.current?.getScreenshot();
     setImage(img);
+    setVideoUrl(null);
   };
+
+  // Start Recording
+  const startRecording = () => {
+    setRecordedChunks([]);
+    setVideoUrl(null);
+    setImage(null);
+    setIsRecording(true);
+
+    mediaRecorderRef.current = new MediaRecorder(
+      webcamRef.current.stream,
+      {
+        mimeType: "video/webm",
+      }
+    );
+
+    mediaRecorderRef.current.addEventListener(
+      "dataavailable",
+      ({ data }) => {
+        if (data.size > 0) {
+          setRecordedChunks((prev) => prev.concat(data));
+        }
+      }
+    );
+
+    mediaRecorderRef.current.start();
+  };
+
+  // Stop Recording
+  const stopRecording = () => {
+    setIsRecording(false);
+
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+    }
+  };
+
+  // Generate video URL
+  useEffect(() => {
+    if (recordedChunks.length > 0 && !isRecording) {
+      const blob = new Blob(recordedChunks, {
+        type: "video/webm",
+      });
+
+      const url = URL.createObjectURL(blob);
+      setVideoUrl(url);
+    }
+  }, [recordedChunks, isRecording]);
 
   // Voice Recognition
   const startListening = () => {
     const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert("Speech Recognition not supported in this browser.");
+      alert("Speech Recognition not supported.");
       return;
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = language === "Kannada" ? "kn-IN" : "en-IN";
+
+    recognition.lang =
+      language === "Kannada" ? "kn-IN" : "en-IN";
 
     recognition.start();
 
     recognition.onresult = (event) => {
-      const text = event.results[0][0].transcript;
+      const text =
+        event.results[0][0].transcript;
+
       setAnswer((prev) => prev + " " + text);
     };
 
     recognition.onerror = () => {
-      alert("Voice error — please try again.");
+      alert("Voice recognition error.");
     };
   };
 
-  // AI Evaluation Logic
+  // Evaluate Answers
   const evaluateAllAnswers = (answers) => {
     let score = 0;
     const skills = [];
@@ -89,7 +148,15 @@ function Interview() {
       skills.push("Emergency Handling");
     }
 
-    if (image) score += 1;
+    if (image) {
+      score += 1;
+    }
+
+    if (score >= 7) {
+      confidence = "High";
+    } else if (score >= 4) {
+      confidence = "Medium";
+    }
 
     const suggestion =
       score >= 7
@@ -101,9 +168,6 @@ function Interview() {
         ? "Candidate gave structured and safety-aware response"
         : "Basic knowledge detected but lacks depth";
 
-    if (score >= 7) confidence = "High";
-    else if (score >= 4) confidence = "Medium";
-
     return {
       score,
       skills,
@@ -113,10 +177,10 @@ function Interview() {
     };
   };
 
-  // NEXT BUTTON
-  const handleNext = useCallback(async () => {
+  // Next Question / Submit
+  const handleNext = async () => {
     if (!answer && !image) {
-      alert("Provide answer via voice, text, or image.");
+      alert("Provide answer via voice, text, or image");
       return;
     }
 
@@ -125,22 +189,27 @@ function Interview() {
     setAllAnswers(updated);
     setAnswer("");
     setImage(null);
+    setVideoUrl(null);
+    setRecordedChunks([]);
 
-    // FINAL QUESTION
+    // Final submit
     if (questionIndex === questions.length - 1) {
       setLoading(true);
 
-      const [result, fraudResult] = await Promise.all([
-        Promise.resolve(evaluateAllAnswers(updated)),
+      const [result, fraudResult] =
+        await Promise.all([
+          Promise.resolve(
+            evaluateAllAnswers(updated)
+          ),
 
-        fraudMonRef.current
-          ? fraudMonRef.current.submitFraudCheck()
-          : Promise.resolve({
+          fraudMonRef.current
+            ? fraudMonRef.current.submitFraudCheck()
+            : Promise.resolve({
               fraudScore: 0,
               riskTier: "safe",
               events: [],
             }),
-      ]);
+        ]);
 
       setLoading(false);
 
@@ -184,24 +253,32 @@ function Interview() {
           district,
           answer: updated.join(" | "),
 
-          // AI Result
+          // Assessment
           ...result,
 
-          // Fraud Data
-          fraudScore: fraudResult?.fraudScore ?? 0,
-          fraudRiskTier: fraudResult?.riskTier ?? "safe",
-          fraudEvents: fraudResult?.events ?? [],
+          // Fraud
+          fraudScore:
+            fraudResult?.fraudScore ?? 0,
+
+          fraudRiskTier:
+            fraudResult?.riskTier ?? "safe",
+
+          fraudEvents:
+            fraudResult?.events ?? [],
+
           livenessVerified:
-            fraudResult?.livenessVerified ?? false,
+            fraudResult?.livenessVerified ??
+            false,
 
           duplicateSuspected:
-            fraudResult?.duplicateSuspected ?? false,
+            fraudResult?.duplicateSuspected ??
+            false,
         },
       });
     } else {
       setQuestionIndex(questionIndex + 1);
     }
-  }, [answer, image, allAnswers, questionIndex]);
+  };
 
   return (
     <FraudMonitor
@@ -217,7 +294,8 @@ function Interview() {
           <div className="interview-container">
 
             <h2 className="title">
-              Interview ({questionIndex + 1}/{questions.length})
+              Interview ({questionIndex + 1}/
+              {questions.length})
             </h2>
 
             {/* Candidate Info */}
@@ -235,7 +313,7 @@ function Interview() {
               </div>
             </div>
 
-            {/* Start Secure Interview */}
+            {/* Start */}
             {!started && (
               <button
                 className="glow-btn start-btn"
@@ -249,7 +327,7 @@ function Interview() {
             {/* Question */}
             <h3>{questions[questionIndex]}</h3>
 
-            {/* Camera */}
+            {/* Webcam */}
             {!image ? (
               <>
                 <div className="video-box">
@@ -258,7 +336,6 @@ function Interview() {
                     screenshotFormat="image/jpeg"
                     width="100%"
                     height="100%"
-                    audio={false}
                   />
                 </div>
 
@@ -267,6 +344,20 @@ function Interview() {
                   onClick={capture}
                 >
                   📸 Capture
+                </button>
+
+                <button
+                  className="glow-btn capture-btn"
+                  onClick={
+                    isRecording
+                      ? stopRecording
+                      : startRecording
+                  }
+                  style={{ marginLeft: "10px" }}
+                >
+                  {isRecording
+                    ? "⏹ Stop Recording"
+                    : "🎥 Record Video"}
                 </button>
               </>
             ) : (
@@ -293,13 +384,26 @@ function Interview() {
               </>
             )}
 
-            {/* Answer Box */}
+            {/* Video Preview */}
+            {videoUrl && (
+              <div style={{ marginTop: "15px" }}>
+                <video
+                  src={videoUrl}
+                  controls
+                  width="350"
+                />
+              </div>
+            )}
+
+            {/* Answer */}
             <div className="answer-box">
               <textarea
                 className="text-area"
                 value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                placeholder="Type your answer…"
+                onChange={(e) =>
+                  setAnswer(e.target.value)
+                }
+                placeholder="Type your answer..."
               />
             </div>
 
@@ -315,20 +419,27 @@ function Interview() {
 
             {/* Loading */}
             {loading && (
-              <p style={{ marginTop: "10px", color: "#ddd" }}>
-                ⏳ Analyzing response & running fraud check…
+              <p
+                style={{
+                  marginTop: "10px",
+                  color: "#ddd",
+                }}
+              >
+                ⏳ Analyzing response &
+                running fraud check…
               </p>
             )}
 
-            {/* Submit */}
+            {/* Next */}
             <button
               className="glow-btn start-btn"
               onClick={handleNext}
               disabled={loading || !started}
             >
-              {questionIndex === questions.length - 1
+              {questionIndex ===
+                questions.length - 1
                 ? loading
-                  ? "Analyzing…"
+                  ? "Analyzing..."
                   : "Submit Interview"
                 : "Next Question"}
             </button>

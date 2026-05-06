@@ -23,8 +23,8 @@ function StatCard({ icon, label, value, color, onClick }) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [candidates, setCandidates] = useState([]);
-  const [apps, setApps]             = useState([]);
-  const [activeTab, setActiveTab]   = useState("overview");
+  const [apps, setApps] = useState([]);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     setCandidates(JSON.parse(localStorage.getItem("candidates") || "[]"));
@@ -44,20 +44,20 @@ export default function Dashboard() {
 
   // Aggregate stats (Combining applications and candidates if needed, but primarily focusing on candidates for interviews)
   const appStats = {
-    total:     apps.length + candidates.length,
-    pending:   apps.filter((a) => a.status === "Pending Review").length + candidates.filter((c) => c.status === "Pending").length,
-    review:    apps.filter((a) => a.status === "Under Review").length,
+    total: apps.length,
+    pending: apps.filter((a) => a.status === "Pending Review").length,
+    review: apps.filter((a) => a.status === "Under Review").length,
     interview: apps.filter((a) => a.status === "Interview Scheduled").length,
-    selected:  apps.filter((a) => a.status === "Selected").length + candidates.filter((c) => c.status === "Approved").length,
-    rejected:  apps.filter((a) => a.status === "Rejected").length + candidates.filter((c) => c.status === "Rejected").length,
+    selected: apps.filter((a) => a.status === "Selected").length,
+    rejected: apps.filter((a) => a.status === "Rejected").length,
   };
 
   const appStatusData = [
-    { name: "Pending",   value: appStats.pending   },
-    { name: "In Review", value: appStats.review     },
-    { name: "Interview", value: appStats.interview  },
-    { name: "Approved",  value: appStats.selected   },
-    { name: "Rejected",  value: appStats.rejected   },
+    { name: "Pending", value: appStats.pending },
+    { name: "In Review", value: appStats.review },
+    { name: "Interview", value: appStats.interview },
+    { name: "Selected", value: appStats.selected },
+    { name: "Rejected", value: appStats.rejected },
   ].filter((d) => d.value > 0);
 
   const recentApps = [...apps]
@@ -100,19 +100,19 @@ export default function Dashboard() {
 
       {/* ── Top stat cards ── */}
       <div className="dash-stats-row">
-        <StatCard icon="👥" label="Total Candidates"   value={candidates.length}   color="#4f46e5" />
-        <StatCard icon="📋" label="Total Applications" value={appStats.total}      color="#7c3aed" onClick={() => navigate("/admin/applications")} />
-        <StatCard icon="⏳" label="Pending Review"     value={appStats.pending}    color="#d97706" onClick={() => navigate("/admin/applications")} />
-        <StatCard icon="📅" label="Interviews Set"     value={appStats.interview}  color="#16a34a" onClick={() => navigate("/admin/applications")} />
-        <StatCard icon="✅" label="Selected"           value={appStats.selected}   color="#6366f1" onClick={() => navigate("/admin/applications")} />
-        <StatCard icon="❌" label="Rejected"           value={appStats.rejected}   color="#ef4444" onClick={() => navigate("/admin/applications")} />
+        <StatCard icon="👥" label="Total Candidates" value={candidates.length} color="#4f46e5" />
+        <StatCard icon="📋" label="Total Applications" value={appStats.total} color="#7c3aed" onClick={() => navigate("/admin/applications")} />
+        <StatCard icon="⏳" label="Pending Review" value={appStats.pending} color="#d97706" onClick={() => navigate("/admin/applications")} />
+        <StatCard icon="📅" label="Interviews Set" value={appStats.interview} color="#16a34a" onClick={() => navigate("/admin/applications")} />
+        <StatCard icon="✅" label="Selected" value={appStats.selected} color="#6366f1" onClick={() => navigate("/admin/applications")} />
+        <StatCard icon="❌" label="Rejected" value={appStats.rejected} color="#ef4444" onClick={() => navigate("/admin/applications")} />
       </div>
 
       {/* ── Tab bar ── */}
       <div className="dash-tabs">
-        {[["overview","📊 Overview"],["applications","📋 Applications"],["candidates","👥 Candidates"]].map(([k,l]) => (
+        {[["overview", "📊 Overview"], ["applications", "📋 Applications"], ["candidates", "👥 Candidates"]].map(([k, l]) => (
           <button key={k} id={`dash-tab-${k}`}
-            className={`dash-tab${activeTab===k?" active":""}`}
+            className={`dash-tab${activeTab === k ? " active" : ""}`}
             onClick={() => setActiveTab(k)}>{l}</button>
         ))}
       </div>
@@ -133,7 +133,7 @@ export default function Dashboard() {
                     <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} />
                     <Tooltip />
-                    <Bar dataKey="count" radius={[6,6,0,0]}>
+                    <Bar dataKey="count" radius={[6, 6, 0, 0]}>
                       {skillData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                     </Bar>
                   </BarChart>
@@ -167,7 +167,7 @@ export default function Dashboard() {
                 <ul className="dash-list">
                   {topCandidates.map((c, i) => (
                     <li key={i} className="dash-list__item">
-                      <span className="dash-list__rank">#{i+1}</span>
+                      <span className="dash-list__rank">#{i + 1}</span>
                       <div>
                         <strong>{c.name}</strong>
                         <span style={{ fontSize: 12, color: "#6b7280" }}> — {c.job}</span>
@@ -188,11 +188,11 @@ export default function Dashboard() {
             <div className="dash-actions">
               {[
                 ["📋 Review Applications", () => navigate("/admin/applications"), "#4f46e5"],
-                ["📊 View All Candidates", () => setActiveTab("candidates"),      "#7c3aed"],
-                ["🛡️ Fraud Alerts",        () => navigate("/admin/fraud"),         "#ef4444"],
-                ["🔍 Pending Reviews",     () => navigate("/admin/applications"),  "#d97706"],
+                ["📊 View All Candidates", () => setActiveTab("candidates"), "#7c3aed"],
+                ["🛡️ Fraud Alerts", () => navigate("/admin/fraud"), "#ef4444"],
+                ["🔍 Pending Reviews", () => navigate("/admin/applications"), "#d97706"],
               ].map(([label, fn, color]) => (
-                <button key={label} className="dash-action-btn" style={{ borderColor: color+"40", color }}
+                <button key={label} className="dash-action-btn" style={{ borderColor: color + "40", color }}
                   onClick={fn}>{label}</button>
               ))}
             </div>
@@ -228,15 +228,16 @@ export default function Dashboard() {
                   <tbody>
                     {recentApps.map((a) => (
                       <tr key={a.id}>
-                        <td><strong>{a.user_name}</strong><br /><span style={{ fontSize:11, color:"#9ca3af" }}>{a.user_email}</span></td>
+                        <td><strong>{a.user_name}</strong><br /><span style={{ fontSize: 11, color: "#9ca3af" }}>{a.user_email}</span></td>
                         <td>{a.job_title}</td>
-                        <td><span style={{ fontSize:11, background:"#f3f4f6", padding:"2px 8px", borderRadius:50 }}>{a.job_category}</span></td>
+                        <td><span style={{ fontSize: 11, background: "#f3f4f6", padding: "2px 8px", borderRadius: 50 }}>{a.job_category}</span></td>
                         <td>{a.experience_years} yr</td>
-                        <td style={{ fontSize:12 }}>{new Date(a.applied_at).toLocaleDateString("en-IN")}</td>
+                        <td style={{ fontSize: 12 }}>{new Date(a.applied_at).toLocaleDateString("en-IN")}</td>
                         <td>
-                          <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:50,
-                            background: a.status==="Selected"?"#dcfce7":a.status==="Rejected"?"#fee2e2":a.status==="Interview Scheduled"?"#dbeafe":"#fef3c7",
-                            color:      a.status==="Selected"?"#16a34a":a.status==="Rejected"?"#dc2626":a.status==="Interview Scheduled"?"#2563eb":"#d97706"
+                          <span style={{
+                            fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 50,
+                            background: a.status === "Selected" ? "#dcfce7" : a.status === "Rejected" ? "#fee2e2" : a.status === "Interview Scheduled" ? "#dbeafe" : "#fef3c7",
+                            color: a.status === "Selected" ? "#16a34a" : a.status === "Rejected" ? "#dc2626" : a.status === "Interview Scheduled" ? "#2563eb" : "#d97706"
                           }}>{a.status}</span>
                         </td>
                       </tr>
@@ -279,9 +280,10 @@ export default function Dashboard() {
                           </span>
                         </td>
                         <td>
-                          <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:50,
-                            background: c.status==="Approved"?"#dcfce7": c.status==="Rejected"?"#fee2e2" :"#fef3c7",
-                            color:      c.status==="Approved"?"#16a34a": c.status==="Rejected"?"#dc2626" :"#b45309"
+                          <span style={{
+                            fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 50,
+                            background: c.status === "Selected" ? "#dcfce7" : "#f3f4f6",
+                            color: c.status === "Selected" ? "#16a34a" : "#6b7280"
                           }}>{c.status || "Pending"}</span>
                         </td>
                       </tr>
