@@ -5,24 +5,24 @@ import FraudMonitor from "./FraudMonitor";
 import "./App.css";
 
 function Interview() {
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const { job, language, name, district } = location.state || {};
 
   // Generate stable IDs for this session
   const candidateId = useRef(`cand_${name || "guest"}_${Date.now()}`).current;
-  const sessionId   = useRef(`sess_${Date.now()}`).current;
+  const sessionId = useRef(`sess_${Date.now()}`).current;
 
-  const webcamRef    = useRef(null);
-  const fraudMonRef  = useRef(null); // exposes submitFraudCheck
+  const webcamRef = useRef(null);
+  const fraudMonRef = useRef(null);
 
-  const [image,         setImage]         = useState(null);
-  const [answer,        setAnswer]        = useState("");
-  const [allAnswers,    setAllAnswers]    = useState([]);
-  const [loading,       setLoading]       = useState(false);
+  const [image, setImage] = useState(null);
+  const [answer, setAnswer] = useState("");
+  const [allAnswers, setAllAnswers] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [started,       setStarted]       = useState(false); // delay monitoring until started
+  const [started, setStarted] = useState(false);
 
   const questions = [
     "How do you ensure safety while working?",
@@ -30,11 +30,13 @@ function Interview() {
     "How do you handle emergency situations?",
   ];
 
+  // Capture image
   const capture = () => {
     const img = webcamRef.current?.getScreenshot();
     setImage(img);
   };
 
+  // Voice Recognition
   const startListening = () => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -46,6 +48,7 @@ function Interview() {
 
     const recognition = new SpeechRecognition();
     recognition.lang = language === "Kannada" ? "kn-IN" : "en-IN";
+
     recognition.start();
 
     recognition.onresult = (event) => {
@@ -53,34 +56,64 @@ function Interview() {
       setAnswer((prev) => prev + " " + text);
     };
 
-    recognition.onerror = () => alert("Voice error — please try again.");
+    recognition.onerror = () => {
+      alert("Voice error — please try again.");
+    };
   };
 
+  // AI Evaluation Logic
   const evaluateAllAnswers = (answers) => {
     let score = 0;
     const skills = [];
     let confidence = "Low";
 
     const text = answers.join(" ").toLowerCase();
-    if (text.includes("helmet"))   { score += 3; skills.push("Safety Gear"); }
-    if (text.includes("gloves"))   { score += 2; skills.push("Protection"); }
-    if (text.includes("check"))    { score += 2; skills.push("Awareness"); }
-    if (text.includes("emergency")){ score += 2; skills.push("Emergency Handling"); }
+
+    if (text.includes("helmet")) {
+      score += 3;
+      skills.push("Safety Gear");
+    }
+
+    if (text.includes("gloves")) {
+      score += 2;
+      skills.push("Protection");
+    }
+
+    if (text.includes("check")) {
+      score += 2;
+      skills.push("Awareness");
+    }
+
+    if (text.includes("emergency")) {
+      score += 2;
+      skills.push("Emergency Handling");
+    }
+
     if (image) score += 1;
 
-    const suggestion = score >= 7
-      ? "Good, but can improve protective equipment usage"
-      : "Needs improvement in safety practices";
-    const reason = score >= 7
-      ? "Candidate gave structured and safety-aware response"
-      : "Basic knowledge detected but lacks depth";
+    const suggestion =
+      score >= 7
+        ? "Good, but can improve protective equipment usage"
+        : "Needs improvement in safety practices";
+
+    const reason =
+      score >= 7
+        ? "Candidate gave structured and safety-aware response"
+        : "Basic knowledge detected but lacks depth";
 
     if (score >= 7) confidence = "High";
     else if (score >= 4) confidence = "Medium";
 
-    return { score, skills, suggestion, reason, confidence };
+    return {
+      score,
+      skills,
+      suggestion,
+      reason,
+      confidence,
+    };
   };
 
+  // NEXT BUTTON
   const handleNext = useCallback(async () => {
     if (!answer && !image) {
       alert("Provide answer via voice, text, or image.");
@@ -88,23 +121,61 @@ function Interview() {
     }
 
     const updated = [...allAnswers, answer];
+
     setAllAnswers(updated);
     setAnswer("");
     setImage(null);
 
+    // FINAL QUESTION
     if (questionIndex === questions.length - 1) {
       setLoading(true);
 
-      // Run fraud check concurrently with evaluation
       const [result, fraudResult] = await Promise.all([
         Promise.resolve(evaluateAllAnswers(updated)),
+
         fraudMonRef.current
           ? fraudMonRef.current.submitFraudCheck()
-          : Promise.resolve({ fraudScore: 0, riskTier: "safe", events: [] }),
+          : Promise.resolve({
+              fraudScore: 0,
+              riskTier: "safe",
+              events: [],
+            }),
       ]);
 
       setLoading(false);
 
+      // SAVE TO LOCAL STORAGE
+      const candidateData = {
+        id: candidateId,
+        name,
+        district,
+        job,
+        score: result.score,
+        allAnswers: updated,
+        evaluation: {
+          suggestion: result.suggestion,
+          reason: result.reason,
+          skills: result.skills
+        },
+        fraudScore: fraudResult?.fraudScore ?? 0,
+        fraudRiskTier: fraudResult?.riskTier ?? "safe",
+        status: "Pending",
+        date: new Date().toISOString(),
+      };
+
+      const existingCandidates =
+        JSON.parse(localStorage.getItem("candidates")) || [];
+
+      // Prevent double-saving if user double-clicks submit
+      if (!existingCandidates.some(c => c.id === candidateId)) {
+        existingCandidates.push(candidateData);
+        localStorage.setItem(
+          "candidates",
+          JSON.stringify(existingCandidates)
+        );
+      }
+
+      // NAVIGATE TO RESULT PAGE
       navigate("/result", {
         state: {
           job,
@@ -112,20 +183,24 @@ function Interview() {
           name,
           district,
           answer: updated.join(" | "),
-          // Assessment result
+
+          // AI Result
           ...result,
-          // Fraud result
-          fraudScore:        fraudResult?.fraudScore    ?? 0,
-          fraudRiskTier:     fraudResult?.riskTier      ?? "safe",
-          fraudEvents:       fraudResult?.events        ?? [],
-          livenessVerified:  fraudResult?.livenessVerified ?? false,
-          duplicateSuspected: fraudResult?.duplicateSuspected ?? false,
+
+          // Fraud Data
+          fraudScore: fraudResult?.fraudScore ?? 0,
+          fraudRiskTier: fraudResult?.riskTier ?? "safe",
+          fraudEvents: fraudResult?.events ?? [],
+          livenessVerified:
+            fraudResult?.livenessVerified ?? false,
+
+          duplicateSuspected:
+            fraudResult?.duplicateSuspected ?? false,
         },
       });
     } else {
       setQuestionIndex(questionIndex + 1);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [answer, image, allAnswers, questionIndex]);
 
   return (
@@ -135,7 +210,7 @@ function Interview() {
       sessionId={sessionId}
       webcamRef={webcamRef}
       interviewActive={started}
-      onFraudComplete={null} /* handled inline in handleNext */
+      onFraudComplete={null}
     >
       <div className="card">
         <div className="page-center">
@@ -147,14 +222,20 @@ function Interview() {
 
             {/* Candidate Info */}
             <div className="user-info">
-              <div style={{ marginBottom: "15px", fontSize: "14px", color: "#eee" }}>
+              <div
+                style={{
+                  marginBottom: "15px",
+                  fontSize: "14px",
+                  color: "#eee",
+                }}
+              >
                 <p><b>Name:</b> {name}</p>
                 <p><b>District:</b> {district}</p>
                 <p><b>Job:</b> {job}</p>
               </div>
             </div>
 
-            {/* Start button — begins fraud monitoring */}
+            {/* Start Secure Interview */}
             {!started && (
               <button
                 className="glow-btn start-btn"
@@ -180,7 +261,11 @@ function Interview() {
                     audio={false}
                   />
                 </div>
-                <button className="glow-btn capture-btn" onClick={capture}>
+
+                <button
+                  className="glow-btn capture-btn"
+                  onClick={capture}
+                >
                   📸 Capture
                 </button>
               </>
@@ -189,10 +274,20 @@ function Interview() {
                 <img
                   src={image}
                   alt="capture"
-                  style={{ width: "100%", maxWidth: "350px", borderRadius: "12px" }}
+                  style={{
+                    width: "100%",
+                    maxWidth: "350px",
+                    borderRadius: "12px",
+                  }}
                 />
-                <br /><br />
-                <button className="glow-btn" onClick={() => setImage(null)}>
+
+                <br />
+                <br />
+
+                <button
+                  className="glow-btn"
+                  onClick={() => setImage(null)}
+                >
                   🔄 Retake
                 </button>
               </>
@@ -210,7 +305,10 @@ function Interview() {
 
             {/* Voice */}
             <div style={{ marginTop: "10px" }}>
-              <button className="glow-btn capture-btn" onClick={startListening}>
+              <button
+                className="glow-btn capture-btn"
+                onClick={startListening}
+              >
                 🎤 Speak
               </button>
             </div>
@@ -222,14 +320,16 @@ function Interview() {
               </p>
             )}
 
-            {/* Next / Submit */}
+            {/* Submit */}
             <button
               className="glow-btn start-btn"
               onClick={handleNext}
               disabled={loading || !started}
             >
               {questionIndex === questions.length - 1
-                ? loading ? "Analyzing…" : "Submit Interview"
+                ? loading
+                  ? "Analyzing…"
+                  : "Submit Interview"
                 : "Next Question"}
             </button>
 

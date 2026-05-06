@@ -41,7 +41,8 @@ function Navbar({ onStartTour }) {
   };
 
   const handleLogout = () => {
-    localStorage.clear();
+    localStorage.removeItem("role");
+    localStorage.removeItem("username");
     navigate("/login");
   };
 
@@ -53,7 +54,7 @@ function Navbar({ onStartTour }) {
     { key: "nav_smart_jobs",      path: "/smart-jobs",                         show: true },
     { key: "nav_my_applications", path: "/my-applications",                    show: role === "user" },
     { key: "nav_dashboard",       path: role === "admin" ? "/dashboard" : "/UserDashboard", show: !!role },
-    { key: "nav_applications",    path: "/admin/applications",                 show: role === "admin" },
+    { key: "nav_applications",    path: "/admin/review",                 show: role === "admin" },
   ];
 
   const isActive = (path) => location.pathname === path;

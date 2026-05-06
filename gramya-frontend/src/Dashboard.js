@@ -42,21 +42,21 @@ export default function Dashboard() {
     .sort((a, b) => b.score - a.score)
     .slice(0, 5);
 
-  // Application stats
+  // Aggregate stats (Combining applications and candidates if needed, but primarily focusing on candidates for interviews)
   const appStats = {
-    total:     apps.length,
-    pending:   apps.filter((a) => a.status === "Pending Review").length,
+    total:     apps.length + candidates.length,
+    pending:   apps.filter((a) => a.status === "Pending Review").length + candidates.filter((c) => c.status === "Pending").length,
     review:    apps.filter((a) => a.status === "Under Review").length,
     interview: apps.filter((a) => a.status === "Interview Scheduled").length,
-    selected:  apps.filter((a) => a.status === "Selected").length,
-    rejected:  apps.filter((a) => a.status === "Rejected").length,
+    selected:  apps.filter((a) => a.status === "Selected").length + candidates.filter((c) => c.status === "Approved").length,
+    rejected:  apps.filter((a) => a.status === "Rejected").length + candidates.filter((c) => c.status === "Rejected").length,
   };
 
   const appStatusData = [
     { name: "Pending",   value: appStats.pending   },
     { name: "In Review", value: appStats.review     },
     { name: "Interview", value: appStats.interview  },
-    { name: "Selected",  value: appStats.selected   },
+    { name: "Approved",  value: appStats.selected   },
     { name: "Rejected",  value: appStats.rejected   },
   ].filter((d) => d.value > 0);
 
@@ -78,7 +78,7 @@ export default function Dashboard() {
           <button
             id="dash-review-btn"
             className="dash-cta-btn"
-            onClick={() => navigate("/admin/applications")}
+            onClick={() => navigate("/admin/review")}
           >
             📋 Review Applications
           </button>
@@ -91,7 +91,7 @@ export default function Dashboard() {
           </button>
           <button
             className="dash-cta-btn dash-cta-btn--ghost"
-            onClick={() => { localStorage.clear(); navigate("/login"); }}
+            onClick={() => { localStorage.removeItem("role"); localStorage.removeItem("username"); navigate("/login"); }}
           >
             Logout
           </button>
@@ -280,8 +280,8 @@ export default function Dashboard() {
                         </td>
                         <td>
                           <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:50,
-                            background: c.status==="Selected"?"#dcfce7":"#f3f4f6",
-                            color:      c.status==="Selected"?"#16a34a":"#6b7280"
+                            background: c.status==="Approved"?"#dcfce7": c.status==="Rejected"?"#fee2e2" :"#fef3c7",
+                            color:      c.status==="Approved"?"#16a34a": c.status==="Rejected"?"#dc2626" :"#b45309"
                           }}>{c.status || "Pending"}</span>
                         </td>
                       </tr>

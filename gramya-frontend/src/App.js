@@ -19,6 +19,8 @@ import JobListingPage       from "./JobListingPage";
 import ApplicationTracker   from "./ApplicationTracker";
 import AdminApplications    from "./AdminApplications";
 import AdminFraudDashboard  from "./AdminFraudDashboard";
+import ReviewPage           from "./ReviewPage";
+import AdminReviewPage      from "./AdminReviewPage";
 
 import "./App.css";
 
@@ -46,6 +48,9 @@ function App() {
           <Route path="/my-applications" element={
             <ProtectedRoute roleRequired="user"><ApplicationTracker /></ProtectedRoute>
           } />
+          <Route path="/review/:id" element={
+            <ProtectedRoute roleRequired="user"><ReviewPage /></ProtectedRoute>
+          } />
 
           {/* ── Admin-protected routes ── */}
           <Route path="/dashboard" element={
@@ -56,6 +61,12 @@ function App() {
           } />
           <Route path="/admin/fraud" element={
             <ProtectedRoute roleRequired="admin"><AdminFraudDashboard /></ProtectedRoute>
+          } />
+          <Route path="/admin/review" element={
+            <ProtectedRoute roleRequired="admin"><AdminReviewPage /></ProtectedRoute>
+          } />
+          <Route path="/admin/review/:id" element={
+            <ProtectedRoute roleRequired="admin"><AdminReviewPage /></ProtectedRoute>
           } />
 
           {/* ── Public job / tool routes ── */}
