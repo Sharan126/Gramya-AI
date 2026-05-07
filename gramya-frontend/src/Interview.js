@@ -91,35 +91,40 @@ function Interview() {
   }, [recordedChunks, isRecording]);
 
   // Voice Recognition
-  const startListening = () => {
-    const SpeechRecognition =
-      window.SpeechRecognition ||
-      window.webkitSpeechRecognition;
+ const startListening = () => {
+  const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
 
-    if (!SpeechRecognition) {
-      alert("Speech Recognition not supported.");
-      return;
-    }
+  if (!SpeechRecognition) {
+    alert("Speech Recognition not supported.");
+    return;
+  }
 
-    const recognition = new SpeechRecognition();
+  const recognition = new SpeechRecognition();
 
-    recognition.lang =
-      language === "Kannada" ? "kn-IN" : "en-IN";
+  recognition.lang =
+    language === "Kannada" ? "kn-IN" : "en-IN";
 
-    recognition.start();
+  recognition.onresult = (event) => {
+    const text =
+      event.results[0][0].transcript;
 
-    recognition.onresult = (event) => {
-      const text =
-        event.results[0][0].transcript;
-
-      setAnswer((prev) => prev + " " + text);
-    };
-
-    recognition.onerror = (event) => {
-  console.log("Speech error:", event.error);
-  alert("Voice error: " + event.error);
-};
+    setAnswer((prev) => prev + " " + text);
   };
+
+  recognition.onerror = (event) => {
+    console.log("Speech error:", event.error);
+    alert("Voice error: " + event.error);
+  };
+
+  try {
+    recognition.start();
+  } catch (err) {
+    console.log(err);
+    alert(err.message);
+  }
+};
 
   // Evaluate Answers
   const evaluateAllAnswers = (answers) => {
