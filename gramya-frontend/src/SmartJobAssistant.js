@@ -55,7 +55,7 @@ const matchColor = (s) =>
   : s >= 80 ? "linear-gradient(135deg,#3b82f6,#6366f1)"
   : "linear-gradient(135deg,#f59e0b,#d97706)";
 
-const API = process.env.REACT_APP_API_URL || "http://localhost:8000/api/v1";
+const API = process.env.REACT_APP_API_URL || "https://gramya-ai.onrender.com/api/v1";
 
 // Keyword → skill intent map (Kannada + English)
 const INTENT_MAP = {
