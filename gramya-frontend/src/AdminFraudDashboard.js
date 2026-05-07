@@ -15,7 +15,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "./AdminFraudDashboard.css";
 
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000/api/v1";
+const API_BASE = process.env.REACT_APP_API_URL || "https://gramya-ai.onrender.com/api/v1/api/v1";
 
 // ─── Constants ──────────────────────────────────────────────────
 const TIER_META = {
