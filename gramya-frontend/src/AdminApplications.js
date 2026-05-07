@@ -438,5 +438,3 @@ const td = {
   borderBottom: "1px solid #eee",
   textAlign: "center",
 };
-
-export default UserDashboard;
