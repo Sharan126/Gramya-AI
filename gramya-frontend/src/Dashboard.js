@@ -187,7 +187,6 @@ export default function Dashboard() {
             <h2 className="dash-card__title">⚡ Quick Actions</h2>
             <div className="dash-actions">
               {[
-                ["📋 Review Applications", () => navigate("/admin/applications"), "#4f46e5"],
                 ["📊 View All Candidates", () => setActiveTab("candidates"), "#7c3aed"],
                 ["🛡️ Fraud Alerts", () => navigate("/admin/fraud"), "#ef4444"],
                 ["🔍 Pending Reviews", () => navigate("/admin/applications"), "#d97706"],
