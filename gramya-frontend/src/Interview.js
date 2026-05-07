@@ -105,6 +105,8 @@ function Interview() {
 
   recognition.lang =
     language === "Kannada" ? "kn-IN" : "en-IN";
+   recognition.continuous = true;
+recognition.interimResults = false;
 
   recognition.onresult = (event) => {
     const text =
