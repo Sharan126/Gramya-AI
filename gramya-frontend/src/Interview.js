@@ -115,9 +115,10 @@ function Interview() {
       setAnswer((prev) => prev + " " + text);
     };
 
-    recognition.onerror = () => {
-      alert("Voice recognition error.");
-    };
+    recognition.onerror = (event) => {
+  console.log("Speech error:", event.error);
+  alert("Voice error: " + event.error);
+};
   };
 
   // Evaluate Answers
