@@ -46,7 +46,7 @@ function StatusStepper({ status }) {
 export default function ApplicationTracker() {
   const navigate = useNavigate();
   const [apps, setApps]         = useState([]);
-  const [, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [filterSt, setFilterSt] = useState("all");
 
   const userId   = localStorage.getItem("userId");
