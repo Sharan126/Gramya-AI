@@ -44,14 +44,38 @@ export default function Dashboard() {
 
   // Aggregate stats (Combining applications and candidates if needed, but primarily focusing on candidates for interviews)
   const appStats = {
-    total: apps.length,
-    pending: apps.filter((a) => a.status === "Pending Review").length,
-    review: apps.filter((a) => a.status === "Under Review").length,
-    interview: apps.filter((a) => a.status === "Interview Scheduled").length,
-    selected: apps.filter((a) => a.status === "Selected").length,
-    rejected: apps.filter((a) => a.status === "Rejected").length,
-  };
+  total: apps.length,
 
+  pending: apps.filter(
+    (a) =>
+      a.status?.toLowerCase().trim() ===
+      "pending review"
+  ).length,
+
+  review: apps.filter(
+    (a) =>
+      a.status?.toLowerCase().trim() ===
+      "under review"
+  ).length,
+
+  interview: apps.filter(
+    (a) =>
+      a.status?.toLowerCase().trim() ===
+      "interview scheduled"
+  ).length,
+
+  selected: apps.filter(
+    (a) =>
+      a.status?.toLowerCase().trim() ===
+      "selected"
+  ).length,
+
+  rejected: apps.filter(
+    (a) =>
+      a.status?.toLowerCase().trim() ===
+      "rejected"
+  ).length,
+};
   const appStatusData = [
     { name: "Pending", value: appStats.pending },
     { name: "In Review", value: appStats.review },
@@ -189,7 +213,7 @@ export default function Dashboard() {
               {[
                 ["📊 View All Candidates", () => setActiveTab("candidates"), "#7c3aed"],
                 ["🛡️ Fraud Alerts", () => navigate("/admin/fraud"), "#ef4444"],
-                ["🔍 Pending Reviews", () => navigate("/admin/applications"), "#d97706"],
+                ["🔍 Pending Reviews", () => navigate("/admin/review"), "#d97706"],
               ].map(([label, fn, color]) => (
                 <button key={label} className="dash-action-btn" style={{ borderColor: color + "40", color }}
                   onClick={fn}>{label}</button>
