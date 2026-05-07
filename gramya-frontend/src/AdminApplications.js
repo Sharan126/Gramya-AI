@@ -1,18 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import "./jobs.css";
-
-const API = process.env.REACT_APP_API_URL || "http://localhost:8000/api/v1";
-const ALL_STATUSES = ["Pending Review","Under Review","Interview Scheduled","Selected","Rejected"];
-
-const statusClass = (s) => {
-  if (s==="Pending Review")      return "status--pending";
-  if (s==="Under Review")        return "status--review";
-  if (s==="Interview Scheduled") return "status--interview";
-  if (s==="Selected")            return "status--selected";
-  if (s==="Rejected")            return "status--rejected";
-  return "status--pending";
-};
+import AIJobsSection from "./AIJobsSection";
 
 /* ── Review Modal ─────────────────────────────────────────────────────────── */
 function ReviewModal({ app, onApprove, onReject, onClose }) {
@@ -284,30 +272,89 @@ export default function AdminApplications() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="admin-stats">
-        {[["Total",stats.total,"#4f46e5"],["Pending",stats.pending,"#d97706"],["In Review",stats.review,"#2563eb"],["Interview",stats.interview,"#16a34a"],["Selected",stats.selected,"#7c3aed"],["Rejected",stats.rejected,"#dc2626"]].map(([l,n,c])=>(
-          <div key={l} className="admin-stat-card"><span className="admin-stat-card__num" style={{ color:c }}>{n}</span><span className="admin-stat-card__lbl">{l}</span></div>
-        ))}
-      </div>
+      {/* ── Smart Job Assistant CTA ── */}
+      <div
+        style={{
+          maxWidth: 1100,
+          margin: "28px auto 0",
+          padding: "0 16px",
+        }}
+      >
+        <div
+          style={{
+            background:
+              "linear-gradient(135deg, #4f46e5, #7c3aed, #a855f7)",
+            borderRadius: 20,
+            padding: "28px 32px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 16,
+            boxShadow: "0 12px 32px rgba(79,70,229,0.35)",
+          }}
+        >
+          <div>
+            <p
+              style={{
+                color: "rgba(255,255,255,0.75)",
+                fontSize: 12,
+                fontWeight: 600,
+                margin: "0 0 6px",
+                letterSpacing: 1,
+                textTransform: "uppercase",
+              }}
+            >
+              NEW FEATURE
+            </p>
 
-      {/* Filters */}
-      <div className="admin-filters">
-        <select id="admin-cat-filter" className="admin-filter-select" value={catFilter} onChange={(e)=>setCatFilter(e.target.value)}>
-          {cats.map((c)=><option key={c} value={c}>{c==="all"?"All Categories":c.charAt(0).toUpperCase()+c.slice(1)}</option>)}
-        </select>
-        <select id="admin-st-filter" className="admin-filter-select" value={stFilter} onChange={(e)=>setStFilter(e.target.value)}>
-          <option value="all">All Statuses</option>
-          {ALL_STATUSES.map((s)=><option key={s} value={s}>{s}</option>)}
-        </select>
-        <span style={{ fontSize:13, color:"#6b7280", alignSelf:"center" }}>Showing {displayed.length} of {apps.length}</span>
-      </div>
+            <h3
+              style={{
+                color: "#fff",
+                fontSize: 20,
+                fontWeight: 800,
+                margin: "0 0 6px",
+              }}
+            >
+              🎤 AI Smart Job Assistant
+            </h3>
 
-      {loading && <div className="j-loading"><div className="j-spinner" /></div>}
+            <p
+              style={{
+                color: "rgba(255,255,255,0.85)",
+                fontSize: 13.5,
+                margin: 0,
+              }}
+            >
+              Speak in Kannada • See jobs on map • Get skill gap analysis
+            </p>
+          </div>
 
-      {!loading && displayed.length === 0 && (
-        <div style={{ textAlign:"center", padding:"60px 20px", color:"#9ca3af" }}>
-          <p style={{ fontSize:16 }}>No applications found for selected filters.</p>
+          <button
+            id="cta-smart-jobs"
+            onClick={() => navigate("/smart-jobs")}
+            style={{
+              padding: "13px 28px",
+              borderRadius: 50,
+              border: "none",
+              background: "#fff",
+              color: "#4f46e5",
+              fontWeight: 800,
+              fontSize: 14,
+              cursor: "pointer",
+              boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
+              transition: "transform 0.2s",
+              whiteSpace: "nowrap",
+            }}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.transform = "scale(1.05)")
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.transform = "scale(1)")
+            }
+          >
+            Try Now →
+          </button>
         </div>
       )}
 
@@ -375,6 +422,21 @@ export default function AdminApplications() {
           );
         })}
       </div>
+
+      <AIJobsSection />
     </div>
   );
 }
+
+const th = {
+  padding: "10px",
+  borderBottom: "2px solid #ddd",
+};
+
+const td = {
+  padding: "10px",
+  borderBottom: "1px solid #eee",
+  textAlign: "center",
+};
+
+export default UserDashboard;

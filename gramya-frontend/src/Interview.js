@@ -213,6 +213,38 @@ function Interview() {
 
       setLoading(false);
 
+      // SAVE TO LOCAL STORAGE
+      const candidateData = {
+        id: candidateId,
+        name,
+        district,
+        job,
+        score: result.score,
+        allAnswers: updated,
+        evaluation: {
+          suggestion: result.suggestion,
+          reason: result.reason,
+          skills: result.skills
+        },
+        fraudScore: fraudResult?.fraudScore ?? 0,
+        fraudRiskTier: fraudResult?.riskTier ?? "safe",
+        status: "Pending",
+        date: new Date().toISOString(),
+      };
+
+      const existingCandidates =
+        JSON.parse(localStorage.getItem("candidates")) || [];
+
+      // Prevent double-saving if user double-clicks submit
+      if (!existingCandidates.some(c => c.id === candidateId)) {
+        existingCandidates.push(candidateData);
+        localStorage.setItem(
+          "candidates",
+          JSON.stringify(existingCandidates)
+        );
+      }
+
+      // NAVIGATE TO RESULT PAGE
       navigate("/result", {
         state: {
           job,

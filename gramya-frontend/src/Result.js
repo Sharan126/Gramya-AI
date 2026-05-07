@@ -19,19 +19,7 @@ function Result() {
     answer
   } = location.state || {};
 
-  // Save to localStorage
-  const existing = JSON.parse(localStorage.getItem("candidates")) || [];
-
-  existing.push({
-    name,
-    job,
-    district,
-    score,
-    status: score >= 7 ? "Approved" : "Review",
-    date: new Date().toISOString() 
-  });
-
-  localStorage.setItem("candidates", JSON.stringify(existing));
+  // Data is already saved by Interview.js before navigating here
 
   const color = score >= 7 ? "green" : "red";
 

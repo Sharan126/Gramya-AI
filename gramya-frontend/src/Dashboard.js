@@ -42,7 +42,7 @@ export default function Dashboard() {
     .sort((a, b) => b.score - a.score)
     .slice(0, 5);
 
-  // Application stats
+  // Aggregate stats (Combining applications and candidates if needed, but primarily focusing on candidates for interviews)
   const appStats = {
     total: apps.length,
     pending: apps.filter((a) => a.status === "Pending Review").length,
@@ -78,7 +78,7 @@ export default function Dashboard() {
           <button
             id="dash-review-btn"
             className="dash-cta-btn"
-            onClick={() => navigate("/admin/applications")}
+            onClick={() => navigate("/admin/review")}
           >
             📋 Review Applications
           </button>
@@ -91,7 +91,7 @@ export default function Dashboard() {
           </button>
           <button
             className="dash-cta-btn dash-cta-btn--ghost"
-            onClick={() => { localStorage.clear(); navigate("/login"); }}
+            onClick={() => { localStorage.removeItem("role"); localStorage.removeItem("username"); navigate("/login"); }}
           >
             Logout
           </button>

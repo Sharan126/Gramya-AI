@@ -49,11 +49,38 @@ function UserDashboard() {
                         style={{
                           ...td,
                           color:
-                            item.status === "Approved" ? "green" : "orange",
+                            item.status === "Approved"
+                              ? "green"
+                              : item.status === "Rejected"
+                              ? "red"
+                              : "#4f46e5",
                           fontWeight: "bold",
                         }}
                       >
-                        {item.status}
+                        {item.status === "Approved" ? (
+                          "Approved ✅"
+                        ) : item.status === "Rejected" ? (
+                          "Rejected ❌"
+                        ) : (
+                          <button
+                            onClick={() => navigate(`/review/${item.id}`)}
+                            style={{
+                              padding: "6px 12px",
+                              borderRadius: "20px",
+                              border: "none",
+                              background: "#e0e7ff",
+                              color: "#4f46e5",
+                              cursor: "pointer",
+                              fontWeight: "bold",
+                              fontSize: "12px",
+                              transition: "background 0.2s"
+                            }}
+                            onMouseOver={(e) => (e.currentTarget.style.background = "#c7d2fe")}
+                            onMouseOut={(e) => (e.currentTarget.style.background = "#e0e7ff")}
+                          >
+                            Review 🔍
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
