@@ -423,26 +423,26 @@ export default function AdminApplications() {
                 </div>
               </div>
 
-              {/* Expanded answers */}
-              {expanded && (
-                <div style={{ marginTop:12 }}>
-                  <div className="admin-app-answers">
-                     <h4>📝 Application Answers</h4>
+             {/* Expanded answers */}
+{expanded && (
+  <div style={{ marginTop: 12 }}>
+    <div className="admin-app-answers">
+      <h4>📝 Application Answers</h4>
 
-                          {app.answers?.map((ans, i) => (
-                         <p key={i}>
-                               <strong>Q{i + 1}:</strong> {ans}
-                         </p>
-                       ))}
+      {app.answers?.map((ans, i) => (
+        <p key={i}>
+          <strong>Q{i + 1}:</strong> {ans}
+        </p>
+      ))}
 
-  {app.cover_note && (
-    <p>
-      <strong>Cover Note:</strong> {app.cover_note}
-    </p>
-  )}
-</div>
-                </div>
-              )}
+      {app.cover_note && (
+        <p>
+          <strong>Cover Note:</strong> {app.cover_note}
+        </p>
+      )}
+    </div>
+  </div>
+)}
             </div>
           );
         })}
@@ -452,5 +452,3 @@ export default function AdminApplications() {
     </div>
   );
 }
-
-
