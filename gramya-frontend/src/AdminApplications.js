@@ -2,6 +2,23 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AIJobsSection from "./AIJobsSection";
 
+const API = "https://gramya-ai.onrender.com/api/v1";
+
+const statusClass = (status) => {
+  switch (status) {
+    case "Selected":
+      return "selected";
+    case "Rejected":
+      return "rejected";
+    case "Interview Scheduled":
+      return "interview";
+    case "Under Review":
+      return "review";
+    default:
+      return "pending";
+  }
+};
+
 /* ── Review Modal ─────────────────────────────────────────────────────────── */
 function ReviewModal({ app, onApprove, onReject, onClose }) {
   const [note, setNote] = useState("");
