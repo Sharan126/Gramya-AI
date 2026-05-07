@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./jobs.css";
 
-const API = process.env.REACT_APP_API_URL || "http://localhost:8000/api/v1";
+const API = process.env.REACT_APP_API_URL || "https://gramya-ai.onrender.com/api/v1";
 
 const CAT_ICONS = { electrician:"🔌", plumber:"🚰", driver:"🚗", teaching:"📚", healthcare:"🏥", farming:"🌾", mechanic:"🔧" };
 const CAT_COLORS = { electrician:"#f59e0b", plumber:"#3b82f6", driver:"#22c55e", teaching:"#8b5cf6", healthcare:"#ef4444", farming:"#84cc16", mechanic:"#06b6d4" };
