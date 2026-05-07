@@ -428,13 +428,4 @@ export default function AdminApplications() {
   );
 }
 
-const th = {
-  padding: "10px",
-  borderBottom: "2px solid #ddd",
-};
 
-const td = {
-  padding: "10px",
-  borderBottom: "1px solid #eee",
-  textAlign: "center",
-};
